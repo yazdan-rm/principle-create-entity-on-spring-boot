@@ -1,7 +1,6 @@
 package com.example.demo.Entity;
 
 import jakarta.persistence.*;
-import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -9,32 +8,49 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 public abstract class BaseEntity {
 
-    @Setter
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE) // Strategy defined in child classes
     private Long id;
 
-    @Setter
     @CreationTimestamp
     private LocalDateTime createdDate;
 
-    @Setter
     @UpdateTimestamp
     private LocalDateTime updatedDate;
 
     @Version
     private Long version;
 
-    public Long id() {
+
+    public Long getId() {
         return id;
     }
 
-    public LocalDateTime createdDate() {
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public LocalDateTime getCreatedDate() {
         return createdDate;
     }
 
-    public LocalDateTime updatedDate() {
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public LocalDateTime getUpdatedDate() {
         return updatedDate;
     }
 
+    public void setUpdatedDate(LocalDateTime updatedDate) {
+        this.updatedDate = updatedDate;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
 }
