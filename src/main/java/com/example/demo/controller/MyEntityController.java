@@ -2,7 +2,6 @@ package com.example.demo.controller;
 
 import com.example.demo.Entity.MyEntity;
 import com.example.demo.repository.MyEntityRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
