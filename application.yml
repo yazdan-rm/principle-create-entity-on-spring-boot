@@ -1,0 +1,202 @@
+spring:
+  profiles:
+    active: '${SPRING_ACTIVE_PROFILE}'
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+  main:
+    banner-mode: console
+    allow-bean-definition-overriding: true
+  banner:
+    location: banner
+  ##-----Spring datasource Config------##
+  datasource:
+    url: jdbc:oracle:thin:@192.168.10.174:1521/nab
+    driver-class-name: oracle.jdbc.OracleDriver
+    username: ENC(BLDZ2MmHcig/z40rbikEFx5lj6OqoZ5ijuFMzkXjXblMdB8sTHGIAABshsock/uV)
+    password: ENC(BLDZ2MmHcig/z40rbikEFx5lj6OqoZ5ijuFMzkXjXblMdB8sTHGIAABshsock/uV)
+    tomcat:
+      initial-size: 15
+      max-idle: 15
+      min-idle: 8
+      default-auto-commit: true
+      max-wait: 10000
+      max-active: 50
+      test-on-borrow: true
+    hikari:
+      maximum-pool-size: 10
+      max-lifetime: 90000
+      idle-timeout: 60000
+
+  jpa:
+    database-platform: org.hibernate.dialect.Oracle12cDialect
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+    properties:
+      default_schema: nab
+      hibernate:
+        format_sql: true
+        session_factory:
+          statement_inspector: ir.rbp.nabcore.common.config.jpa.JpaInterceptor
+
+  jackson:
+    default-property-inclusion: non_null
+    time-zone: Asia/Tehran
+  kafka:
+    consumer:
+      group-id: org-nab-grp
+      auto-offset-reset: earliest
+    bootstrap-servers: 192.168.10.114:9093
+
+server:
+  port: 9996
+  compression:
+    enabled: true
+    mime-types: text/html,text/css,text/xml,text/plain,text/javascript,applicationId/javascript,applicationId/json,applicationId/xml
+  ssl:
+    enabled: true
+    key-store: classpath:keystore.jks
+    key-store-password: rbp@2020
+    key-alias: localhost
+    key-password: rbp@2020
+    key-store-type: jks
+
+logging:
+  level:
+    root: info
+    org:
+      springframework:
+        web: DEBUG
+        security: DEBUG
+      hibernate: ERROR
+    com.zaxxer.hikari.HikariConfig: DEBUG
+  log-dir:
+    schedule:
+      individual-transfer:
+        dir: ./logs/schedule/membership-transfer
+        file-name: membership-transfer-schedule
+
+info:
+  app:
+    name: nab
+    description: nab
+    version: '1.0.0'
+
+client-id: nabSystemClientId
+
+authorize-server-url: https://192.168.10.104:8443/authorize-server
+
+application:
+  get-all-bi-info-group-type: true
+  origins: '*'
+  security:
+    context-path: /nab
+    ##security config
+    clientId: ${client-id}
+    clientSecret: nabSystemClientSecret
+    clientScope: nabSystemClientScope
+    authenticationUrl: ${authorize-server-url}
+    tokenUrl: ${authorize-server-url}/oauth/token
+    check-token-url: ${authorize-server-url}/api/oauth/check-token
+    authorizeUrl: ${authorize-server-url}/oauth/authorize
+    ##authorization config
+    authorizationUrl: ${authorize-server-url}
+    checkServicePermission: /api/servicePermission/checkServicePermission
+    authorize-server-url: ${authorize-server-url}
+    security-organization-url: https://192.168.10.106:9999
+    p12FilePath: ENC(PlfwsFk2jPKwkwA2x9wdft/v6VPmBeHmjq0RodytVxjGI2F5B4FChvi87eOOd5gsxso+nylzHTgvhUzeJ129gw==)
+    p12FilePassword: ENC(8NWIigRMffU3Rm6GMjjfW+YcwJ7sAPTaeHpgK+jCT71HEdF650vDWkUOKV2n1uST)
+
+values-used-by-methods :
+  maximumNumberPersonId: 3
+  maximumNumberOfNationalCodes : 500
+
+management:
+  endpoints:
+    web:
+      cors:
+        allowed-origins: "*"
+        allowed-methods: "POST"
+      exposure:
+        include: loggers
+      base-path: /rest/actuator
+
+security:
+  oauth2:
+    resource:
+      token-info-uri: ${application.security.check-token-url}
+    client:
+      client-id: ${client-id}
+      access-token-uri: ${application.security.tokenUrl}
+      client-secret: ${application.security.clientSecret}
+      grant-type: client_credentials
+      scope: ${application.security.clientScope}
+
+springfox:
+  documentation:
+    enabled: false
+
+topic:
+  org:
+    branch:
+      post:
+        update:
+          repetitive:
+            org-branch-post-update-repetitive
+        insert:
+          org-branch-post-insert
+        delete:
+          org-branch-post-delete
+
+url-scanner:
+  authorize-server-url: ${authorize-server-url}
+  effective-type: none
+  target-package-name: ir.rbp.nab.controller
+
+scheduling:
+  membership-organizing:
+    enabled: true
+    cron-expression:
+      period-archive-membership-organizing: 0 */30 * * * *
+  membership-transfer:
+    enabled: false
+    cron-expression:
+      pending-in-paygah: 0 15 0 * * FRI
+      pending-in-hozeh: 0 15 1 * * FRI
+      pending-in-nahiyeh: 0 15 2 * * FRI
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+remote:
+  base-info: https://192.168.10.175:8443/binew/rest
+  organization: https://192.168.10.175:8443/orgnew/rest
+
+server:
+  host-address: 192.168.5.116
+  host-name: RBP-015
+
+springfox:
+  documentation:
+    enabled: true
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+
+remote:
+  base-info: https://192.168.10.175:8443/binew/rest
+  organization: https://192.168.10.175:8443/orgnew/rest
+
+server:
+  host-address: 192.168.1.176
+  host-name: TEST-NAB-176
+
+jasypt:
+  encryptor:
+    password: ${NAB_JASYPT_PASSWORD}
