@@ -1,81 +1,20 @@
-if we have do not determine role for endpint like this
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf()
-                .disable()
-//                .cors()
-//                .and()
-//                .addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class)
-                .headers()
-                .contentSecurityPolicy(contentSecurityPolicy)
-                .and()
-                .referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
-                .and()
-                .frameOptions()
-                .sameOrigin()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeHttpRequests()
-                .antMatchers(HttpMethod.OPTIONS,"/**/**/**").permitAll()
-                .antMatchers("/api/**/**","/auth/account")//,"/cameras/*","/criminals/*","/foundeds/*","/images/*","/logs/*","/persons/*","/statistics/*","/nodes/*","/stations/*")
-                .authenticated()
-//                .authenticated()
-//                .hasAnyRole("USER")
-                .antMatchers("/auth/login").permitAll().and()
-                .oauth2Login()
-                .and()
-                .httpBasic()
-                .and()
-                .logout()
-//                .addLogoutHandler(keycloakLogoutHandler)
-                .logoutSuccessUrl("/")
-                .and()
-                .oauth2ResourceServer()
-                .jwt()
-                .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                .jwkSetUri(jwkUri);
-        return http.getOrBuild();
-    }    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf()
-                .disable()
-//                .cors()
-//                .and()
-//                .addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class)
-                .headers()
-                .contentSecurityPolicy(contentSecurityPolicy)
-                .and()
-                .referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
-                .and()
-                .frameOptions()
-                .sameOrigin()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeHttpRequests()
-                .antMatchers(HttpMethod.OPTIONS,"/**/**/**").permitAll()
-                .antMatchers("/api/**/**","/auth/account")//,"/cameras/*","/criminals/*","/foundeds/*","/images/*","/logs/*","/persons/*","/statistics/*","/nodes/*","/stations/*")
-                .authenticated()
-//                .authenticated()
-//                .hasAnyRole("USER")
-                .antMatchers("/auth/login").permitAll().and()
-                .oauth2Login()
-                .and()
-                .httpBasic()
-                .and()
-                .logout()
-//                .addLogoutHandler(keycloakLogoutHandler)
-                .logoutSuccessUrl("/")
-                .and()
-                .oauth2ResourceServer()
-                .jwt()
-                .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                .jwkSetUri(jwkUri);
-        return http.getOrBuild();
-    }
-how treat spring sec with this
+private String getResponseOf(String request, int retryCount) {
+		if (retryCount++ > MAX_RETRY) {
+			throw AbisRemoteExceptionRegistry.create(AbisRemoteExceptionRegistry.ERROR_IN_SENDING_ZMQ_MESSAGE, ServerMessagesUtil.getMessage("ir.naji.abis.errorMessages", "errorInSendingZMQMessage"));
+		}
+		ZMQ.Socket socket = getSocket();
+		String result = null;
+		try {
+			socket.send(request, 0);
+			result = socket.recvStr(0);
+		} catch (ZMQException e) {
+			logger.error(e.getMessage());
+			logger.trace(String.format("Exception in ZMQtoPythonClient: caused by class (%s) and JSON (%s) ", e.getClass(), request != null ? request : " null "));
+			return getResponseOf(request, retryCount);
+		} finally {
+			destroySocket(socket);
+		}
+		return result;
+	}
+
+I have this code for create a connection socket but I have a problem when connection to database is drop I want to try again for connection to it , I know my db is up but connection is not connect again until i rest the module . see this code and tell me how can solve this problem and consider it has recursive call
