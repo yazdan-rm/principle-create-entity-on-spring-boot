@@ -1,20 +1,33 @@
-private String getResponseOf(String request, int retryCount) {
-		if (retryCount++ > MAX_RETRY) {
-			throw AbisRemoteExceptionRegistry.create(AbisRemoteExceptionRegistry.ERROR_IN_SENDING_ZMQ_MESSAGE, ServerMessagesUtil.getMessage("ir.naji.abis.errorMessages", "errorInSendingZMQMessage"));
-		}
-		ZMQ.Socket socket = getSocket();
-		String result = null;
-		try {
-			socket.send(request, 0);
-			result = socket.recvStr(0);
-		} catch (ZMQException e) {
-			logger.error(e.getMessage());
-			logger.trace(String.format("Exception in ZMQtoPythonClient: caused by class (%s) and JSON (%s) ", e.getClass(), request != null ? request : " null "));
-			return getResponseOf(request, retryCount);
-		} finally {
-			destroySocket(socket);
-		}
-		return result;
-	}
+how can use schedule for getting reconncetion to db
+ public void run(ApplicationArguments args) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String serviceUri = faceimageAddImageAndIdentityUri;
 
-I have this code for create a connection socket but I have a problem when connection to database is drop I want to try again for connection to it , I know my db is up but connection is not connect again until i rest the module . see this code and tell me how can solve this problem and consider it has recursive call
+        HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setJdbcUrl(url);
+        hikariConfig.setUsername(username);
+        hikariConfig.setPassword(password);
+//        hikariConfig.setMaximumPoolSize();
+        hikariConfig.setConnectionTimeout(2000);
+        hikariConfig.setIdleTimeout(60000);
+//        hikariConfig.setMaxLifetime(1800000);
+        HikariDataSource dataSource = new HikariDataSource(hikariConfig);
+
+        Locale.setDefault(Locale.US);
+
+        String selectScript = "SELECT t.NATIONAL_CODE, t.GENDER, t.BIRTH_DATE, t.FIRST_NAME, t.LAST_NAME, t.FATHER_NAME" +
+                ", t.TAKE_PICTURE_DATE, t.PICTURE_CONTENT, t.PICTURE_ID FROM IDEN.VW_IDEN_FOR_BIOMETRIC t ";
+        String updateScript = "UPDATE IDEN.VW_IDEN_FOR_BIOMETRIC_UPDATE t SET t.SENT_TO_ABIS = ? where " +
+                "t.PICTURE_ID = ?";
+
+        while (true) {
+            try (Connection connection = dataSource.getConnection();
+                 PreparedStatement preparedStatement = connection.prepareStatement(selectScript);
+                 PreparedStatement updatePreparedStatement = connection.prepareStatement(updateScript)) {
+                preparedStatement.setQueryTimeout(10);
+                updatePreparedStatement.setQueryTimeout(10);
+
+
+                preparedStatement.setFetchSize(200); // view return only 200 rows
+                while (true) {
+//                    System.out.pr
